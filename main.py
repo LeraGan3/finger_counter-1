@@ -42,7 +42,7 @@ while cap.isOpened():  # пока камера "работает"
                     upCount += 1
             else:
                 if fingersList[thumb_coord[0]][0] > fingersList[thumb_coord[1]][0]:
-                    upCount += 0
+                    upCount += 1
     currentTime = time.time()
     fps = 1 / (currentTime - prevTime)
     cv2.putText(image, f"FPS: {fps}", (200, 100), cv2.FONT_ITALIC, 2, (255, 255, 255), 2)
