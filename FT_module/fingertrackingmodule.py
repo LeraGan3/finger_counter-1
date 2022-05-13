@@ -85,7 +85,7 @@ def fingersUp(self, draw=False):
             cv2.circle(img, (x2, y2), r, (0, 0, 255), cv2.FILLED)
             if length > 30:
                 cv2.line(img, (x1, y1), (x2, y2), (200, 220, 240), t)
-            else:
+        
 
 
 def main():
@@ -114,5 +114,5 @@ def main():
 
         if cv2.waitKey(1) & 0xFF == 27:  # Ожидаем нажатие ESC 
             break
-
-main()
+if __name__ == "__main__":
+    main()
