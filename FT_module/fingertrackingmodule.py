@@ -3,7 +3,6 @@ import mediapipe as mp
 import time
 import math
 
-
 class handDetector():
     def __init__(self, mode=False, maxHands=2, complexity=0, detectionCon=0.75, trackingCon=0.75):
         self.mpHands = mp.solutions.hands  # говорим, что хотим распознавать руки
@@ -42,51 +41,50 @@ class handDetector():
                     xmin, xmax = min(xList), max(xList)
                     ymin, ymax = min(yList), max(yList)
                     cv2.rectangle(img, (xmin - offset, ymin - offset), (xmax + offset, ymax + offset), (0, 255, 0), 2)
-                    
-def fingersUp(self, draw=False):
-    mhl = self.result.multi_hand_landmarks
-    if mhl:
-        handCound = len(mhl)
-        for i in range(handCound):
-            self.fingers[i] = []
-            side = 'left'
-            if self.pointPosition[i][5][0] > self.pointPosition[i][17][0]:
-                side = 'right'
 
-            for coord in self.fingertips:
-                if self.pointPosition[i][self.fingertips[0]][1] < self.pointPosition[i][self.fingertips[1]][1]:
-                    self.fingertips[i].append(1)
-            if side == 'left': 
-                if self.pointPosition[i][self.fingertips[0]][0] > self.pointPosition[i][self.fingertips[1]-2][0]:
-                        self.fingertips[i].append(1)
-            else:
-                if self.pointPosition[i][self.fingertips[0]][0] > self.pointPosition[i][self.fingertips[1]][0]:
-                    self.fingertips[i].append(1)
+    def fingersUp(self, draw=False):
+        if self.result.multi_hand_landmarks:
+            handCount = len(self.result.multi_hand_landmarks)
+            for i in range(handCount):
+                self.fingers[i] = []
 
+                side = 'left'
+                if self.pointPosition[i][5][0] > self.pointPosition[i][17][0]:
+                    side = 'right'
 
+                if side == 'left': 
+                    if self.pointPosition[i][self.fingertips[0]][0] < self.pointPosition[i][self.fingertips[0]-2][0]:
+                        self.fingers[i].append(1)
+                    else:
+                        self.fingers[i].append(0)
+                else:
+                    if self.pointPosition[i][self.fingertips[0]][0] > self.pointPosition[i][self.fingertips[0]-2][0]:
+                        self.fingers[i].append(1)
+                    else:
+                        self.fingers[i].append(0)
 
+                for j in range(1, 5):
+                    if self.pointPosition[i][self.fingertips[j]][1] < self.pointPosition[i][self.fingertips[j]-2][1]:
+                        self.fingers[i].append(1)
+                    else:
+                        self.fingers[i].append(0)
 
-
-
-
-                    if draw:
-                        print(self.fingers[i])
-
-    def findDistanse(self, p1, p2, handNumber=0, draw=False, img=None, r=10, t=3):
-        x1, y1 = self.pointPosition[handNumber][p1][0], self.pointPosition[handNumber][p1][1]
-        x2, y2 = self.pointPosition[handNumber][p2][0],  self.pointPosition[handNumber][p2][1]
-        cx, cy = (x1 +x2) // 2, (y1 + y2) // 2
-
-        length = math.sqrt((x2-x1)**2 + (y2-y1)**2)
-
+                if draw:
+                    print(self.fingers[i])
+    
+    def findDistance(self, p1, p2, handNumber=0, draw=False, img=None, r=10, t=2):
+        x1, y1 = self.pointPosition[handNumber][p1][0], self.pointPosition[handNumber][p1][1] 
+        x2, y2 = self.pointPosition[handNumber][p2][0], self.pointPosition[handNumber][p2][1]
+        cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
+        
         if draw:
             cv2.circle(img, (cx, cy), r, (0, 0, 255), cv2.FILLED)
-            cv2.circle(img, (x1, y1), r, (0, 0, 255), cv2.FILLED)
-            cv2.circle(img, (x2, y2), r, (0, 0, 255), cv2.FILLED)
-            if length > 30:
-                cv2.line(img, (x1, y1), (x2, y2), (200, 220, 240), t)
-        
+            cv2.circle(img, (x1, y1), r, (255, 0, 255), cv2.FILLED)
+            cv2.circle(img, (x2, y2), r, (255, 0, 255), cv2.FILLED)
+            cv2.line(img, (x1, y1), (x2, y2), (30, 60, 90), t)
 
+        length = math.sqrt((x2-x1)**2 + (y2-y1)**2)
+        return length
 
 def main():
     cap = cv2.VideoCapture(0)
@@ -100,12 +98,12 @@ def main():
         image = cv2.flip(image, 1)  # зеркально отражаем изображение
         detector.findHands(image, True)
         detector.findFingersPosition(image, True)
-        detector.fingersUp(True)
-        mhl= detector.result.multi_hand_marker
-        if mhl:
-            handCound = len(mhl)
-            for i in range(handCound):
-                detector.findDistanse(4, 8, i, True)
+        detector.fingersUp()
+        if detector.result.multi_hand_landmarks:
+            handCount = len(detector.result.multi_hand_landmarks)
+            for i in range(handCount):
+                l = detector.findDistance(4, 8, i, True, image)
+                print(l)
         currentTime = time.time()
         fps = 1 / (currentTime - prevTime)
         prevTime = currentTime
@@ -114,5 +112,6 @@ def main():
 
         if cv2.waitKey(1) & 0xFF == 27:  # Ожидаем нажатие ESC 
             break
+
 if __name__ == "__main__":
     main()
